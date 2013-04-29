@@ -13,23 +13,28 @@ def zip_with(func, *iterables):
     return starmap(func, zip(*iterables))
 
 
-class Cache:
-    def __init__(self, func, cache_size):
-        self.cache = OrderedDict()
-        self.func = func
-        self.cache_size = cache_size
-
-    def func_cached(self, *args):
-        if args in self.cache:
-            return self.cache[args]
-        else:
-            if len(self.cache) == self.cache_size:
-                self.cache.popitem(False)
-            result = self.func(*args)
-            self.cache[args] = result
-            return result
-
-
 def cache(func, cache_size):
-    cached = Cache(func, cache_size)
-    return cached.func_cached
+    if cache_size <= 0:
+            return func
+
+    cache_store = OrderedDict()
+
+    def func_cached(*args):
+        if not args in cache_store:
+            if len(cache_store) == cache_size:
+                cache_store.popitem(False)
+            cache_store[args] = func(*args)
+        return cache_store[args]
+
+    return func_cached
+
+
+def iterate(func):
+    def compose(func1, func2):
+        return lambda x: func1(func2(x))
+
+    result_function = lambda x: x
+
+    while True:
+        yield result_function
+        result_function = compose(result_function, func)

@@ -1,11 +1,10 @@
 ﻿class Person:
 
     def __init__(self, name, gender, birth_year, father=None, mother=None):
-        self.name = name
-        self.gender = gender
-        self.birth_year = birth_year
-        self.father = father
+        self.name, self.gender, self.birth_year = name, gender, birth_year
         self.children_list = []
+
+        self.father = father
         if father:
             father.set_child(self)
         self.mother = mother
@@ -13,27 +12,17 @@
             mother.set_child(self)
 
     def get_brothers(self):
-        brothers_from_mother = self.__get_parents_children(self.mother, 'M')
-        brothers_from_father = self.__get_parents_children(self.father, 'M')
-        brothers = set(brothers_from_mother + brothers_from_father)
-        if self in brothers:
-            brothers.remove(self)
-        return list(brothers)
+        return self.__get_silbling('M')
 
     def get_sisters(self):
-        sisters_from_mother = self.__get_parents_children(self.mother, 'F')
-        sisters_from_father = self.__get_parents_children(self.father, 'F')
-        sisters = set(sisters_from_mother + sisters_from_father)
-        if self in sisters:
-            sisters.remove(self)
-        return list(sisters)
+        return self.__get_silbling('F')
 
-    def children(self, gender='M/F'):
-        if gender == 'M/F':
-            return self.children_list
-        else:
+    def children(self, gender=None):
+        if gender:
             return [child for child in self.children_list
                                     if child.gender == gender]
+        else:
+            return self.children_list
 
     def set_child(self, child):
         self.children_list.append(child)
@@ -47,8 +36,12 @@
     def gender(self):
         return self.gender
 
-    def __get_parents_children(self, parent, gender):
-        if parent:
-            return parent.children(gender)
-        else:
-            return []
+    def __get_silbling(self, gender=None):
+        siblings_mother_side = self.mother.children(gender)
+        siblings_father_side = self.father.children(gender)
+
+        siblings = set(siblings_mother_side + siblings_father_side)
+        if self in siblings:
+            siblings.remove(self)
+
+        return list(siblings)
